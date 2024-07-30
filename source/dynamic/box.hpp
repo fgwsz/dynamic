@@ -11,9 +11,9 @@ template<typename Type__>
 class Box final{
     DYNAMIC_MACRO_STATIC_ASSERT(::dynamic::is_value_type_v<Type__>);
 public:
-    Box(Type__ const& value={});
+    Box(Type__ const& value);
     Box(Box<Type__> const& rhs);
-    Box(Type__&& value);
+    Box(Type__&& value={});
     Box(Box<Type__>&& rhs);
     Box<Type__>& operator=(Type__ const& value);
     Box<Type__>& operator=(Box<Type__> const& rhs);
@@ -27,7 +27,7 @@ private:
 };
 
 template<typename Type__>
-Box<Type__>::Box(Type__ const& value/*={}*/){
+Box<Type__>::Box(Type__ const& value){
     if constexpr(::dynamic::is_big_type_v<Type__>){
         this->data_=new Type__{value};
     }else{
@@ -41,7 +41,7 @@ Box<Type__>::Box(Box<Type__> const& rhs)
 {}
 
 template<typename Type__>
-Box<Type__>::Box(Type__&& value){
+Box<Type__>::Box(Type__&& value/*={}*/){
     if constexpr(::dynamic::is_big_type_v<Type__>){
         this->data_=new Type__{::std::move(value)};
     }else{
