@@ -1,5 +1,6 @@
 #pragma once
 #include<memory>//::std::addressof
+#include<utility>//::std::move
 
 #include"dynamic/type_traits.hpp"
 #include"dynamic/macro.hpp"
@@ -7,15 +8,20 @@
 namespace dynamic{
 
 template<typename Type__>
-class Box{
+class Box final{
     DYNAMIC_MACRO_STATIC_ASSERT(::dynamic::is_value_type_v<Type__>);
 public:
     Box(Type__ const& value={});
     Box(Box<Type__> const& rhs);
+    Box(Type__&& value);
+    Box(Box<Type__>&& rhs);
     Box<Type__>& operator=(Type__ const& value);
     Box<Type__>& operator=(Box<Type__> const& rhs);
-    virtual ~Box();
+    Box<Type__>& operator=(Type__&& value);
+    Box<Type__>& operator=(Box<Type__>&& rhs);
+    ~Box();
     Type__ const& get()const;
+    using value_type=Type__;
 private:
     Type__* data_;
 };
@@ -33,6 +39,27 @@ template<typename Type__>
 Box<Type__>::Box(Box<Type__> const& rhs)
     :Box(rhs.get())
 {}
+
+template<typename Type__>
+Box<Type__>::Box(Type__&& value){
+    if constexpr(::dynamic::is_big_type_v<Type__>){
+        this->data_=new Type__{::std::move(value)};
+    }else{
+        new((Type__*)(&(this->data_)))Type__{::std::move(value)};
+    }
+}
+
+template<typename Type__>
+Box<Type__>::Box(Box<Type__>&& rhs){
+    if constexpr(::dynamic::is_big_type_v<Type__>){
+        this->data_=rhs.data_;
+        rhs.data_=nullptr;
+    }else{
+        new((Type__*)(&(this->data_)))Type__{
+            ::std::move(*(Type__*)(&(rhs.data_)))
+        };
+    }
+}
 
 template<typename Type__>
 Box<Type__>& Box<Type__>::operator=(Type__ const& value){
@@ -54,6 +81,31 @@ Box<Type__>& Box<Type__>::operator=(Box<Type__> const& rhs){
         return *this;
     }
     return this->operator=(rhs);
+}
+
+template<typename Type__>
+Box<Type__>& Box<Type__>::operator=(Type__&& value){
+    if constexpr(::dynamic::is_big_type_v<Type__>){
+        *(this->data_)=::std::move(value);
+    }else{
+        *(Type__*)(&(this->data_))=::std::move(value);
+    }
+    return *this;
+}
+
+template<typename Type__>
+Box<Type__>& Box<Type__>::operator=(Box<Type__>&& rhs){
+    if(rhs.data_==this->data_){
+        return *this;
+    }
+    if constexpr(::dynamic::is_big_type_v<Type__>){
+        delete this->data_;
+        this->data_=rhs.data_;
+        rhs.data_=nullptr;
+    }else{
+        *(Type__*)(&(this->data_))=::std::move(*(Type__*)(&(rhs.data_)));
+    }
+    return *this;
 }
 
 template<typename Type__>
