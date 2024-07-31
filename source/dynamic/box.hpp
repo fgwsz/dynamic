@@ -20,6 +20,9 @@ public:
     Box<Type__>& operator=(Type__&& value);
     Box<Type__>& operator=(Box<Type__>&& rhs);
     ~Box();
+    Type__& get_mut();
+    Type__ const& get_const()const;
+    Type__& get();
     Type__ const& get()const;
     using value_type=Type__;
 private:
@@ -119,12 +122,27 @@ Box<Type__>::~Box(){
 }
 
 template<typename Type__>
-Type__ const& Box<Type__>::get()const{
+Type__& Box<Type__>::get_mut(){
     if constexpr(::dynamic::is_big_type_v<Type__>){
         return *(this->data_);
     }else{
         return *(Type__ *)(&(this->data_));
     }
+}
+
+template<typename Type__>
+Type__ const& Box<Type__>::get_const()const{
+    return const_cast<Box<Type__>*>(this)->get_mut();
+}
+
+template<typename Type__>
+Type__& Box<Type__>::get(){
+    return this->get_mut();
+}
+
+template<typename Type__>
+Type__ const& Box<Type__>::get()const{
+    return this->get_const();
 }
 
 }//namespace dynamic

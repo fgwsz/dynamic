@@ -15,6 +15,9 @@
 //[o]Box<Type__>& operator=(Type__&& value);
 //[o]Box<Type__>& operator=(Box<Type__>&& rhs);
 //[o]~Box();
+//[o]Type__ & get_mut();
+//[o]Type__ const& get_const()const;
+//[o]Type__ & get();
 //[o]Type__ const& get()const;
 //[o]using value_type=Type__;
 
@@ -28,7 +31,8 @@ TEST_GROUP(dynamic_box){
     TEST_GROUP_ELEMENT(dynamic_box_move_assign_by_value);
     TEST_GROUP_ELEMENT(dynamic_box_move_assign_by_box);
     TEST_GROUP_ELEMENT(dynamic_box_dtor);
-    TEST_GROUP_ELEMENT(dynamic_box_get);
+    TEST_GROUP_ELEMENT(dynamic_box_get_mut);
+    TEST_GROUP_ELEMENT(dynamic_box_get_const);
     TEST_GROUP_ELEMENT(dynamic_box_value_type);
 }
 
@@ -193,17 +197,55 @@ TEST_CASE(dynamic_box_dtor){
     TEST_CHECK_EQ(&(big_box.get()),nullptr);
 }
 
-//[o]Type__ const& get()const;
-TEST_CASE(dynamic_box_get){
+//[o]Type__& get_mut();
+//[o]Type__& get();
+TEST_CASE(dynamic_box_get_mut){
     using small_type=int;
     small_type small_object={100};
     ::dynamic::Box<small_type> small_box(small_object);
+    TEST_CHECK_EQ(small_box.get_mut(),small_object);
     TEST_CHECK_EQ(small_box.get(),small_object);
-    TEST_CHECK_EQ(*(small_type*)(&small_box),small_object);
+
+    small_object=200;
+    small_box.get_mut()=small_object;
+    TEST_CHECK_EQ(small_box.get_mut(),small_object);
+    TEST_CHECK_EQ(small_box.get(),small_object);
+
+    small_object=300;
+    small_box.get()=small_object;
+    TEST_CHECK_EQ(small_box.get_mut(),small_object);
+    TEST_CHECK_EQ(small_box.get(),small_object);
 
     using big_type=::std::string;
     big_type big_object={"hello"};
     ::dynamic::Box<big_type> big_box(big_object);
+    TEST_CHECK_EQ(big_box.get_mut(),big_object);
+    TEST_CHECK_EQ(big_box.get(),big_object);
+
+    big_object="world";
+    big_box.get_mut()=big_object;
+    TEST_CHECK_EQ(big_box.get_mut(),big_object);
+    TEST_CHECK_EQ(big_box.get(),big_object);
+
+    big_object="!!!";
+    big_box.get()=big_object;
+    TEST_CHECK_EQ(big_box.get_mut(),big_object);
+    TEST_CHECK_EQ(big_box.get(),big_object);
+}
+
+//[o]Type__ const& get_const()const;
+//[o]Type__ const& get()const;
+TEST_CASE(dynamic_box_get_const){
+    using small_type=int;
+    small_type small_object={100};
+    ::dynamic::Box<small_type> const small_box(small_object);
+    TEST_CHECK_EQ(small_box.get_const(),small_object);
+    TEST_CHECK_EQ(small_box.get(),small_object);
+
+    using big_type=::std::string;
+    big_type big_object={"hello"};
+    ::dynamic::Box<big_type> const big_box(big_object);
+    TEST_CHECK_EQ(big_box.get_const(),big_object);
     TEST_CHECK_EQ(big_box.get(),big_object);
 }
 
