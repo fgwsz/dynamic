@@ -80,7 +80,7 @@ Box<Type__>& Box<Type__>::operator=(Box<Type__> const& rhs){
     if(::std::addressof(rhs)==this){
         return *this;
     }
-    return this->operator=(rhs);
+    return this->operator=(rhs.get());
 }
 
 template<typename Type__>
